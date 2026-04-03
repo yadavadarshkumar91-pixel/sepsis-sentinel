@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, RotateCcw, Zap, Monitor, Brain } from "lucide-react";
+import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff } from "lucide-react";
+import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
 import { VitalCards } from "@/components/VitalCards";
