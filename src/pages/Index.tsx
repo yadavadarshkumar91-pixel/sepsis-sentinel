@@ -107,6 +107,16 @@ const Dashboard = () => {
               </div>
             </div>
 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-7 h-7"
+              onClick={() => setAlertsEnabled(!alertsEnabled)}
+              title={alertsEnabled ? "Mute alerts" : "Enable alerts"}
+            >
+              {alertsEnabled ? <BellRing className="w-3.5 h-3.5 text-primary" /> : <BellOff className="w-3.5 h-3.5 text-muted-foreground" />}
+            </Button>
+
             <div className="text-right">
               <span className="text-xs font-mono text-muted-foreground">
                 Hour {currentHour + 1} / {selectedPatient.readings.length}
