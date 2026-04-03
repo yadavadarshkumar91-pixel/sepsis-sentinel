@@ -227,6 +227,12 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+      <PatientDetailModal
+        patient={selectedPatient}
+        currentHour={currentHour}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 };
