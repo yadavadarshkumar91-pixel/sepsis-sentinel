@@ -144,8 +144,20 @@ const Dashboard = () => {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Alert */}
-          <AlertBanner score={currentReading.riskScore} patientName={selectedPatient.name} />
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <AlertBanner score={currentReading.riskScore} patientName={selectedPatient.name} />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-2 text-xs"
+              onClick={() => setModalOpen(true)}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Patient Details
+            </Button>
+          </div>
 
           {/* Top row: vitals + gauge */}
           <div className="grid grid-cols-[1fr_220px] gap-4">
