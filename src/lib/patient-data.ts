@@ -16,6 +16,22 @@ export interface VitalReading {
   sepsisLabel: boolean;
 }
 
+export interface ClinicalEvent {
+  hour: number;
+  type: "diagnosis" | "medication" | "procedure" | "lab" | "note";
+  description: string;
+  value?: string;
+}
+
+export interface Treatment {
+  name: string;
+  dosage: string;
+  route: string;
+  frequency: string;
+  startHour: number;
+  status: "active" | "completed" | "discontinued";
+}
+
 export interface Patient {
   id: number;
   name: string;
@@ -23,7 +39,15 @@ export interface Patient {
   gender: string;
   admitTime: string;
   bed: string;
+  weight: number;
+  height: number;
+  bloodType: string;
+  admitDiagnosis: string;
+  comorbidities: string[];
+  allergies: string[];
   readings: VitalReading[];
+  clinicalEvents: ClinicalEvent[];
+  treatments: Treatment[];
 }
 
 const PATIENT_NAMES = [
@@ -102,14 +126,81 @@ export function generatePatient(id: number, hours: number = 48): Patient {
     });
   }
 
+  const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
+  const DIAGNOSES = ["Pneumonia", "Post-surgical recovery", "Acute pancreatitis", "UTI with bacteremia", "Trauma - MVA", "Endocarditis", "Peritonitis", "Meningitis"];
+  const COMORBIDITIES_POOL = ["Hypertension", "Type 2 Diabetes", "COPD", "CKD Stage III", "Atrial Fibrillation", "Obesity", "Heart Failure", "Asthma"];
+  const ALLERGIES_POOL = ["Penicillin", "Sulfa drugs", "Latex", "Iodine", "Aspirin", "NKDA"];
+
+  const gender = rng() > 0.5 ? "Male" : "Female";
+  const numComorbidities = Math.floor(rng() * 3) + 1;
+  const comorbidities: string[] = [];
+  for (let i = 0; i < numComorbidities; i++) {
+    const c = COMORBIDITIES_POOL[Math.floor(rng() * COMORBIDITIES_POOL.length)];
+    if (!comorbidities.includes(c)) comorbidities.push(c);
+  }
+
+  const allergies = rng() > 0.3
+    ? [ALLERGIES_POOL[Math.floor(rng() * (ALLERGIES_POOL.length - 1))]]
+    : ["NKDA"];
+
+  // Generate clinical events
+  const clinicalEvents: ClinicalEvent[] = [
+    { hour: 1, type: "diagnosis", description: "Admitted to ICU", value: DIAGNOSES[id % DIAGNOSES.length] },
+    { hour: 1, type: "lab", description: "CBC Panel", value: "WBC 11.2, Hgb 13.1, Plt 245" },
+    { hour: 2, type: "medication", description: "Started IV fluids", value: "NS 0.9% at 125 mL/hr" },
+    { hour: 4, type: "lab", description: "BMP", value: "Na 138, K 4.1, Cr 1.2, BUN 18" },
+    { hour: 6, type: "note", description: "Nurse assessment: patient resting comfortably" },
+    { hour: 8, type: "lab", description: "Lactate", value: "1.4 mmol/L" },
+    { hour: 12, type: "procedure", description: "Central line placed", value: "Right IJ, confirmed by CXR" },
+    { hour: 16, type: "lab", description: "Blood cultures drawn", value: "Pending" },
+    { hour: 20, type: "medication", description: "Antibiotic adjustment", value: "Piperacillin-Tazobactam 4.5g IV q6h" },
+    { hour: 24, type: "lab", description: "Procalcitonin", value: isSepsisPatient ? "4.8 ng/mL (HIGH)" : "0.3 ng/mL" },
+  ];
+
+  if (isSepsisPatient && sepsisOnset) {
+    clinicalEvents.push(
+      { hour: sepsisOnset - 6, type: "note", description: "AI Alert: Elevated sepsis risk detected", value: "Risk trending upward" },
+      { hour: sepsisOnset - 3, type: "medication", description: "Empiric antibiotics escalated", value: "Meropenem 1g IV q8h" },
+      { hour: sepsisOnset, type: "diagnosis", description: "Sepsis criteria met — qSOFA ≥ 2", value: "Sepsis protocol activated" },
+      { hour: sepsisOnset + 1, type: "procedure", description: "Arterial line placed", value: "Left radial" },
+      { hour: sepsisOnset + 2, type: "medication", description: "Vasopressor initiated", value: "Norepinephrine 0.05 mcg/kg/min" },
+    );
+  }
+
+  clinicalEvents.sort((a, b) => a.hour - b.hour);
+
+  // Treatments
+  const treatments: Treatment[] = [
+    { name: "Normal Saline 0.9%", dosage: "125 mL/hr", route: "IV", frequency: "Continuous", startHour: 1, status: "active" },
+    { name: "Acetaminophen", dosage: "650 mg", route: "PO", frequency: "Q6H PRN", startHour: 2, status: "active" },
+    { name: "Enoxaparin", dosage: "40 mg", route: "SubQ", frequency: "Daily", startHour: 3, status: "active" },
+    { name: "Pantoprazole", dosage: "40 mg", route: "IV", frequency: "Daily", startHour: 1, status: "active" },
+  ];
+
+  if (isSepsisPatient) {
+    treatments.push(
+      { name: "Piperacillin-Tazobactam", dosage: "4.5 g", route: "IV", frequency: "Q6H", startHour: 4, status: sepsisOnset ? "discontinued" : "active" },
+      { name: "Meropenem", dosage: "1 g", route: "IV", frequency: "Q8H", startHour: sepsisOnset ? sepsisOnset - 3 : 20, status: "active" },
+      { name: "Norepinephrine", dosage: "0.05 mcg/kg/min", route: "IV", frequency: "Continuous", startHour: sepsisOnset ? sepsisOnset + 2 : 30, status: "active" },
+    );
+  }
+
   return {
     id,
     name: PATIENT_NAMES[id % PATIENT_NAMES.length],
     age,
-    gender: rng() > 0.5 ? "Male" : "Female",
+    gender,
     admitTime: `${Math.floor(rng() * 12) + 1}:${String(Math.floor(rng() * 60)).padStart(2, '0')} ${rng() > 0.5 ? 'AM' : 'PM'}`,
     bed: BEDS[id % BEDS.length],
+    weight: Math.round(60 + rng() * 40),
+    height: Math.round(155 + rng() * 35),
+    bloodType: BLOOD_TYPES[Math.floor(rng() * BLOOD_TYPES.length)],
+    admitDiagnosis: DIAGNOSES[id % DIAGNOSES.length],
+    comorbidities,
+    allergies,
     readings,
+    clinicalEvents,
+    treatments,
   };
 }
 

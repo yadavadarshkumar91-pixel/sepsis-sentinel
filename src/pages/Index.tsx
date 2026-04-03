@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff } from "lucide-react";
+import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileText } from "lucide-react";
 import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
@@ -10,6 +10,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { VitalsChart, RiskHistoryChart } from "@/components/VitalsChart";
 import { PatientSidebar } from "@/components/PatientSidebar";
 import { FeatureImportance } from "@/components/FeatureImportance";
+import { PatientDetailModal } from "@/components/PatientDetailModal";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(800);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
@@ -142,8 +144,20 @@ const Dashboard = () => {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Alert */}
-          <AlertBanner score={currentReading.riskScore} patientName={selectedPatient.name} />
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <AlertBanner score={currentReading.riskScore} patientName={selectedPatient.name} />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-2 text-xs"
+              onClick={() => setModalOpen(true)}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Patient Details
+            </Button>
+          </div>
 
           {/* Top row: vitals + gauge */}
           <div className="grid grid-cols-[1fr_220px] gap-4">
@@ -213,6 +227,12 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+      <PatientDetailModal
+        patient={selectedPatient}
+        currentHour={currentHour}
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </div>
   );
 };
