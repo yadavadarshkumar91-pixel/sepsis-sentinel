@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, RotateCcw, Zap, Monitor, Brain } from "lucide-react";
+import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff } from "lucide-react";
+import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
 import { VitalCards } from "@/components/VitalCards";
@@ -21,11 +22,14 @@ const Dashboard = () => {
   );
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(800);
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
   const currentHour = currentHours[selectedPatientId] ?? 0;
   const currentReading = selectedPatient.readings[currentHour];
+
+  useAlertNotifications(selectedPatient.name, currentReading.riskScore, alertsEnabled);
 
   const advanceHour = useCallback(() => {
     setCurrentHours((prev) => {
@@ -102,6 +106,16 @@ const Dashboard = () => {
                 />
               </div>
             </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-7 h-7"
+              onClick={() => setAlertsEnabled(!alertsEnabled)}
+              title={alertsEnabled ? "Mute alerts" : "Enable alerts"}
+            >
+              {alertsEnabled ? <BellRing className="w-3.5 h-3.5 text-primary" /> : <BellOff className="w-3.5 h-3.5 text-muted-foreground" />}
+            </Button>
 
             <div className="text-right">
               <span className="text-xs font-mono text-muted-foreground">
