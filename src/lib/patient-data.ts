@@ -16,6 +16,22 @@ export interface VitalReading {
   sepsisLabel: boolean;
 }
 
+export interface ClinicalEvent {
+  hour: number;
+  type: "diagnosis" | "medication" | "procedure" | "lab" | "note";
+  description: string;
+  value?: string;
+}
+
+export interface Treatment {
+  name: string;
+  dosage: string;
+  route: string;
+  frequency: string;
+  startHour: number;
+  status: "active" | "completed" | "discontinued";
+}
+
 export interface Patient {
   id: number;
   name: string;
@@ -23,7 +39,15 @@ export interface Patient {
   gender: string;
   admitTime: string;
   bed: string;
+  weight: number;
+  height: number;
+  bloodType: string;
+  admitDiagnosis: string;
+  comorbidities: string[];
+  allergies: string[];
   readings: VitalReading[];
+  clinicalEvents: ClinicalEvent[];
+  treatments: Treatment[];
 }
 
 const PATIENT_NAMES = [
