@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff } from "lucide-react";
+import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileText } from "lucide-react";
 import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
@@ -10,6 +10,7 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { VitalsChart, RiskHistoryChart } from "@/components/VitalsChart";
 import { PatientSidebar } from "@/components/PatientSidebar";
 import { FeatureImportance } from "@/components/FeatureImportance";
+import { PatientDetailModal } from "@/components/PatientDetailModal";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
