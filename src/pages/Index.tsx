@@ -22,11 +22,14 @@ const Dashboard = () => {
   );
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(800);
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
   const currentHour = currentHours[selectedPatientId] ?? 0;
   const currentReading = selectedPatient.readings[currentHour];
+
+  useAlertNotifications(selectedPatient.name, currentReading.riskScore, alertsEnabled);
 
   const advanceHour = useCallback(() => {
     setCurrentHours((prev) => {
