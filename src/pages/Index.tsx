@@ -15,7 +15,7 @@ import { PatientDetailModal } from "@/components/PatientDetailModal";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
-const patients = generateAllPatients(8);
+const patients = [REAL_CASE_PATIENT, ...generateAllPatients(8)];
 
 const Dashboard = () => {
   const [selectedPatientId, setSelectedPatientId] = useState(0);
