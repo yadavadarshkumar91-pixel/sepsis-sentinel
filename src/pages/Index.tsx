@@ -4,6 +4,7 @@ import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileTex
 import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
+import { REAL_CASE_PATIENT } from "@/lib/real-patient-data";
 import { VitalCards } from "@/components/VitalCards";
 import { RiskGauge } from "@/components/RiskGauge";
 import { AlertBanner } from "@/components/AlertBanner";
@@ -14,10 +15,10 @@ import { PatientDetailModal } from "@/components/PatientDetailModal";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
-const patients = generateAllPatients(8);
+const patients = [REAL_CASE_PATIENT, ...generateAllPatients(8)];
 
 const Dashboard = () => {
-  const [selectedPatientId, setSelectedPatientId] = useState(0);
+  const [selectedPatientId, setSelectedPatientId] = useState(100);
   const [currentHours, setCurrentHours] = useState<Record<number, number>>(
     Object.fromEntries(patients.map((p) => [p.id, 0]))
   );

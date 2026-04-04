@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Bed, Clock, Calendar } from "lucide-react";
+import { User, Bed, Clock, Calendar, FlaskConical } from "lucide-react";
 import { RiskBadge } from "./VitalCards";
 import type { Patient } from "@/lib/patient-data";
 
@@ -16,6 +16,12 @@ export function PatientSidebar({ patients, selectedId, currentHours, onSelect }:
       <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest px-2 mb-3">
         ICU Patients
       </h3>
+      <div className="mb-3 px-2">
+        <span className="inline-flex items-center gap-1 text-[10px] text-primary font-medium">
+          <FlaskConical className="w-3 h-3" />
+          Real case data patient highlighted below
+        </span>
+      </div>
       <div className="space-y-1.5">
         {patients.map((patient) => {
           const hour = currentHours[patient.id] ?? 0;
@@ -30,13 +36,20 @@ export function PatientSidebar({ patients, selectedId, currentHours, onSelect }:
               className={`w-full text-left p-3 rounded-lg transition-all ${
                 isSelected
                   ? "bg-primary/10 border border-primary/30"
-                  : "hover:bg-secondary/60 border border-transparent"
+                  : patient.id === 100
+                    ? "hover:bg-primary/5 border border-primary/20 bg-primary/5"
+                    : "hover:bg-secondary/60 border border-transparent"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
                   <User className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">{patient.name}</span>
+                  {patient.id === 100 && (
+                    <span className="text-[9px] font-semibold uppercase tracking-wider bg-primary/15 text-primary px-1.5 py-0.5 rounded">
+                      Real Data
+                    </span>
+                  )}
                 </div>
                 <RiskBadge score={reading?.riskScore ?? 0} />
               </div>
