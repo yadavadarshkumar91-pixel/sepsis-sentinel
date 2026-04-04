@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { User, Bed, Clock, Calendar } from "lucide-react";
+import { User, Bed, Clock, Calendar, FlaskConical } from "lucide-react";
 import { RiskBadge } from "./VitalCards";
 import type { Patient } from "@/lib/patient-data";
 
