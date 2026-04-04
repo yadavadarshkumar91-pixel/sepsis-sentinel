@@ -42,12 +42,33 @@ function eventColor(type: ClinicalEvent["type"]) {
   }
 }
 
-export function PatientDetailModal({ patient, currentHour, open, onClose }: PatientDetailModalProps) {
+interface PatientDetailModalProps {
+  patient: Patient;
+  currentHour: number;
+  open: boolean;
+  onClose: () => void;
+  notes: PatientNote[];
+  onAddNote: (note: PatientNote) => void;
+}
+
+export function PatientDetailModal({ patient, currentHour, open, onClose, notes, onAddNote }: PatientDetailModalProps) {
+  const [noteText, setNoteText] = useState("");
+  const [noteAuthor, setNoteAuthor] = useState("Dr. Smith");
   const reading = patient.readings[currentHour];
   const risk = getRiskLevel(reading.riskScore);
   const riskPct = Math.round(reading.riskScore * 100);
   const visibleEvents = patient.clinicalEvents.filter(e => e.hour <= currentHour + 1);
   const activeTreatments = patient.treatments.filter(t => t.startHour <= currentHour + 1);
+
+  const handleAddNote = () => {
+    if (!noteText.trim()) return;
+    onAddNote({
+      text: noteText.trim(),
+      author: noteAuthor,
+      timestamp: new Date().toLocaleString(),
+    });
+    setNoteText("");
+  };
 
   return (
     <AnimatePresence>
