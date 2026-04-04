@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileText, Stethoscope } from "lucide-react";
 import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
@@ -110,6 +111,13 @@ const Dashboard = () => {
                 />
               </div>
             </div>
+
+            <Link to="/predict">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-7">
+                <Stethoscope className="w-3.5 h-3.5" />
+                Predict
+              </Button>
+            </Link>
 
             <Button
               variant="ghost"
