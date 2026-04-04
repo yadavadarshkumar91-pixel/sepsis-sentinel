@@ -233,6 +233,11 @@ const Dashboard = () => {
         currentHour={currentHour}
         open={modalOpen}
         onClose={() => setModalOpen(false)}
+        notes={patientNotes[selectedPatientId] ?? []}
+        onAddNote={(note) => setPatientNotes(prev => ({
+          ...prev,
+          [selectedPatientId]: [...(prev[selectedPatientId] ?? []), note]
+        }))}
       />
     </div>
   );
