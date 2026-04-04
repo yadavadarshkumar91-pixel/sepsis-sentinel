@@ -370,6 +370,80 @@ export function PatientDetailModal({ patient, currentHour, open, onClose, notes,
                     </div>
                   </div>
                 </TabsContent>
+
+                {/* Notes Tab */}
+                <TabsContent value="notes" className="h-full mt-0 p-6 overflow-y-auto">
+                  <div className="grid grid-cols-[1fr_300px] gap-4 h-full">
+                    {/* Notes list */}
+                    <ScrollArea className="h-full">
+                      {notes.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                          <MessageSquarePlus className="w-8 h-8 mb-2 opacity-40" />
+                          <p className="text-sm">No notes yet</p>
+                          <p className="text-xs mt-1">Add clinical observations using the form</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {[...notes].reverse().map((note, i) => (
+                            <motion.div
+                              key={`${note.timestamp}-${i}`}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.03 }}
+                              className="glass-card p-3 rounded-lg"
+                            >
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-xs font-medium text-foreground">{note.author}</span>
+                                <span className="text-[10px] text-muted-foreground">{note.timestamp}</span>
+                              </div>
+                              <p className="text-sm text-foreground/90 whitespace-pre-wrap">{note.text}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+
+                    {/* Add note form */}
+                    <div className="glass-card p-4 rounded-lg flex flex-col gap-3 h-fit">
+                      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                        Add Note
+                      </h4>
+                      <Select value={noteAuthor} onValueChange={setNoteAuthor}>
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Dr. Smith">Dr. Smith</SelectItem>
+                          <SelectItem value="Dr. Patel">Dr. Patel</SelectItem>
+                          <SelectItem value="RN Garcia">RN Garcia</SelectItem>
+                          <SelectItem value="RN Thompson">RN Thompson</SelectItem>
+                          <SelectItem value="PA Williams">PA Williams</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Textarea
+                        placeholder="Enter clinical observation, assessment, or plan..."
+                        className="text-sm min-h-[100px] resize-none bg-secondary/30 border-border/30"
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAddNote();
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        className="gap-2 text-xs w-full"
+                        onClick={handleAddNote}
+                        disabled={!noteText.trim()}
+                      >
+                        <Send className="w-3 h-3" />
+                        Save Note
+                      </Button>
+                      <p className="text-[10px] text-muted-foreground text-center">
+                        Ctrl+Enter to save quickly
+                      </p>
+                    </div>
+                  </div>
+                </TabsContent>
               </div>
             </Tabs>
           </motion.div>
