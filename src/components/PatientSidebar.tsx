@@ -45,6 +45,11 @@ export function PatientSidebar({ patients, selectedId, currentHours, onSelect }:
                 <div className="flex items-center gap-2">
                   <User className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">{patient.name}</span>
+                  {patient.id === 100 && (
+                    <span className="text-[9px] font-semibold uppercase tracking-wider bg-primary/15 text-primary px-1.5 py-0.5 rounded">
+                      Real Data
+                    </span>
+                  )}
                 </div>
                 <RiskBadge score={reading?.riskScore ?? 0} />
               </div>

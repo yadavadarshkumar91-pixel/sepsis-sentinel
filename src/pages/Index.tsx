@@ -18,7 +18,7 @@ import { Slider } from "@/components/ui/slider";
 const patients = [REAL_CASE_PATIENT, ...generateAllPatients(8)];
 
 const Dashboard = () => {
-  const [selectedPatientId, setSelectedPatientId] = useState(0);
+  const [selectedPatientId, setSelectedPatientId] = useState(100);
   const [currentHours, setCurrentHours] = useState<Record<number, number>>(
     Object.fromEntries(patients.map((p) => [p.id, 0]))
   );
