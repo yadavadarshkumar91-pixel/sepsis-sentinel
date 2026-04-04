@@ -4,6 +4,7 @@ import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileTex
 import { useAlertNotifications } from "@/hooks/use-alert-notifications";
 import { generateAllPatients } from "@/lib/patient-data";
 import type { Patient } from "@/lib/patient-data";
+import { REAL_CASE_PATIENT } from "@/lib/real-patient-data";
 import { VitalCards } from "@/components/VitalCards";
 import { RiskGauge } from "@/components/RiskGauge";
 import { AlertBanner } from "@/components/AlertBanner";
