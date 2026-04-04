@@ -1,22 +1,24 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Download, User, Heart, Thermometer, Wind, Activity,
   Pill, Stethoscope, FileText, Clock, AlertTriangle, Droplets, Syringe,
-  ClipboardList, TrendingUp
+  ClipboardList, TrendingUp, MessageSquarePlus, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Patient, ClinicalEvent } from "@/lib/patient-data";
 import { getRiskLevel } from "@/lib/patient-data";
 import { downloadReport } from "@/lib/generate-report";
 
-interface PatientDetailModalProps {
-  patient: Patient;
-  currentHour: number;
-  open: boolean;
-  onClose: () => void;
+export interface PatientNote {
+  text: string;
+  author: string;
+  timestamp: string;
 }
 
 function EventIcon({ type }: { type: ClinicalEvent["type"] }) {
