@@ -1,22 +1,24 @@
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Download, User, Heart, Thermometer, Wind, Activity,
   Pill, Stethoscope, FileText, Clock, AlertTriangle, Droplets, Syringe,
-  ClipboardList, TrendingUp
+  ClipboardList, TrendingUp, MessageSquarePlus, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Patient, ClinicalEvent } from "@/lib/patient-data";
 import { getRiskLevel } from "@/lib/patient-data";
 import { downloadReport } from "@/lib/generate-report";
 
-interface PatientDetailModalProps {
-  patient: Patient;
-  currentHour: number;
-  open: boolean;
-  onClose: () => void;
+export interface PatientNote {
+  text: string;
+  author: string;
+  timestamp: string;
 }
 
 function EventIcon({ type }: { type: ClinicalEvent["type"] }) {
@@ -40,12 +42,33 @@ function eventColor(type: ClinicalEvent["type"]) {
   }
 }
 
-export function PatientDetailModal({ patient, currentHour, open, onClose }: PatientDetailModalProps) {
+interface PatientDetailModalProps {
+  patient: Patient;
+  currentHour: number;
+  open: boolean;
+  onClose: () => void;
+  notes: PatientNote[];
+  onAddNote: (note: PatientNote) => void;
+}
+
+export function PatientDetailModal({ patient, currentHour, open, onClose, notes, onAddNote }: PatientDetailModalProps) {
+  const [noteText, setNoteText] = useState("");
+  const [noteAuthor, setNoteAuthor] = useState("Dr. Smith");
   const reading = patient.readings[currentHour];
   const risk = getRiskLevel(reading.riskScore);
   const riskPct = Math.round(reading.riskScore * 100);
   const visibleEvents = patient.clinicalEvents.filter(e => e.hour <= currentHour + 1);
   const activeTreatments = patient.treatments.filter(t => t.startHour <= currentHour + 1);
+
+  const handleAddNote = () => {
+    if (!noteText.trim()) return;
+    onAddNote({
+      text: noteText.trim(),
+      author: noteAuthor,
+      timestamp: new Date().toLocaleString(),
+    });
+    setNoteText("");
+  };
 
   return (
     <AnimatePresence>
@@ -117,6 +140,9 @@ export function PatientDetailModal({ patient, currentHour, open, onClose }: Pati
                 </TabsTrigger>
                 <TabsTrigger value="vitals" className="text-xs gap-1.5">
                   <TrendingUp className="w-3 h-3" /> Vital Trends
+                </TabsTrigger>
+                <TabsTrigger value="notes" className="text-xs gap-1.5">
+                  <MessageSquarePlus className="w-3 h-3" /> Notes {notes.length > 0 && `(${notes.length})`}
                 </TabsTrigger>
               </TabsList>
 
@@ -341,6 +367,80 @@ export function PatientDetailModal({ patient, currentHour, open, onClose }: Pati
                           })}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Notes Tab */}
+                <TabsContent value="notes" className="h-full mt-0 p-6 overflow-y-auto">
+                  <div className="grid grid-cols-[1fr_300px] gap-4 h-full">
+                    {/* Notes list */}
+                    <ScrollArea className="h-full">
+                      {notes.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                          <MessageSquarePlus className="w-8 h-8 mb-2 opacity-40" />
+                          <p className="text-sm">No notes yet</p>
+                          <p className="text-xs mt-1">Add clinical observations using the form</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {[...notes].reverse().map((note, i) => (
+                            <motion.div
+                              key={`${note.timestamp}-${i}`}
+                              initial={{ opacity: 0, y: 5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.03 }}
+                              className="glass-card p-3 rounded-lg"
+                            >
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-xs font-medium text-foreground">{note.author}</span>
+                                <span className="text-[10px] text-muted-foreground">{note.timestamp}</span>
+                              </div>
+                              <p className="text-sm text-foreground/90 whitespace-pre-wrap">{note.text}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </ScrollArea>
+
+                    {/* Add note form */}
+                    <div className="glass-card p-4 rounded-lg flex flex-col gap-3 h-fit">
+                      <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+                        Add Note
+                      </h4>
+                      <Select value={noteAuthor} onValueChange={setNoteAuthor}>
+                        <SelectTrigger className="text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Dr. Smith">Dr. Smith</SelectItem>
+                          <SelectItem value="Dr. Patel">Dr. Patel</SelectItem>
+                          <SelectItem value="RN Garcia">RN Garcia</SelectItem>
+                          <SelectItem value="RN Thompson">RN Thompson</SelectItem>
+                          <SelectItem value="PA Williams">PA Williams</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Textarea
+                        placeholder="Enter clinical observation, assessment, or plan..."
+                        className="text-sm min-h-[100px] resize-none bg-secondary/30 border-border/30"
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleAddNote();
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        className="gap-2 text-xs w-full"
+                        onClick={handleAddNote}
+                        disabled={!noteText.trim()}
+                      >
+                        <Send className="w-3 h-3" />
+                        Save Note
+                      </Button>
+                      <p className="text-[10px] text-muted-foreground text-center">
+                        Ctrl+Enter to save quickly
+                      </p>
                     </div>
                   </div>
                 </TabsContent>
