@@ -36,7 +36,9 @@ export function PatientSidebar({ patients, selectedId, currentHours, onSelect }:
               className={`w-full text-left p-3 rounded-lg transition-all ${
                 isSelected
                   ? "bg-primary/10 border border-primary/30"
-                  : "hover:bg-secondary/60 border border-transparent"
+                  : patient.id === 100
+                    ? "hover:bg-primary/5 border border-primary/20 bg-primary/5"
+                    : "hover:bg-secondary/60 border border-transparent"
               }`}
             >
               <div className="flex items-center justify-between mb-1">
