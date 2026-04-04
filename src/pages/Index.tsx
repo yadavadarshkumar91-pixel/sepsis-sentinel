@@ -112,6 +112,13 @@ const Dashboard = () => {
               </div>
             </div>
 
+            <Link to="/predict">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-7">
+                <Stethoscope className="w-3.5 h-3.5" />
+                Predict
+              </Button>
+            </Link>
+
             <Button
               variant="ghost"
               size="icon"
