@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [speed, setSpeed] = useState(800);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [patientNotes, setPatientNotes] = useState<Record<number, Array<{ text: string; author: string; timestamp: string }>>>({});
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
