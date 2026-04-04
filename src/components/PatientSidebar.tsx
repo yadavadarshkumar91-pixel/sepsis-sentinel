@@ -16,6 +16,12 @@ export function PatientSidebar({ patients, selectedId, currentHours, onSelect }:
       <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest px-2 mb-3">
         ICU Patients
       </h3>
+      <div className="mb-3 px-2">
+        <span className="inline-flex items-center gap-1 text-[10px] text-primary font-medium">
+          <FlaskConical className="w-3 h-3" />
+          Real case data patient highlighted below
+        </span>
+      </div>
       <div className="space-y-1.5">
         {patients.map((patient) => {
           const hour = currentHours[patient.id] ?? 0;
