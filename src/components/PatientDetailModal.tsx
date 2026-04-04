@@ -141,6 +141,9 @@ export function PatientDetailModal({ patient, currentHour, open, onClose, notes,
                 <TabsTrigger value="vitals" className="text-xs gap-1.5">
                   <TrendingUp className="w-3 h-3" /> Vital Trends
                 </TabsTrigger>
+                <TabsTrigger value="notes" className="text-xs gap-1.5">
+                  <MessageSquarePlus className="w-3 h-3" /> Notes {notes.length > 0 && `(${notes.length})`}
+                </TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-hidden">
