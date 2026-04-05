@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileText, Stethoscope } from "lucide-react";
@@ -12,6 +12,8 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { VitalsChart, RiskHistoryChart } from "@/components/VitalsChart";
 import { PatientSidebar } from "@/components/PatientSidebar";
 import { FeatureImportance } from "@/components/FeatureImportance";
+import { XAICompactCard } from "@/components/XAIExplanationPanel";
+import { explainReading } from "@/lib/xai-engine";
 import { PatientDetailModal } from "@/components/PatientDetailModal";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -33,6 +35,11 @@ const Dashboard = () => {
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
   const currentHour = currentHours[selectedPatientId] ?? 0;
   const currentReading = selectedPatient.readings[currentHour];
+
+  const xaiExplanation = useMemo(
+    () => explainReading(currentReading, selectedPatient.readings, currentHour),
+    [currentReading, selectedPatient.readings, currentHour]
+  );
 
   useAlertNotifications(selectedPatient.name, currentReading.riskScore, alertsEnabled);
 
@@ -181,8 +188,12 @@ const Dashboard = () => {
             <RiskHistoryChart readings={selectedPatient.readings} currentHour={currentHour} />
           </div>
 
-          {/* Bottom row */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Bottom row: XAI + Model Performance */}
+          <div className="grid grid-cols-3 gap-4">
+            {/* XAI Explanation (live) */}
+            <XAICompactCard explanation={xaiExplanation} />
+
+            {/* SHAP Feature Importance */}
             <FeatureImportance />
 
             {/* Model info card */}

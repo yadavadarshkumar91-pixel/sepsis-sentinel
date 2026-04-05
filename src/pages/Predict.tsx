@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getRiskLevel } from "@/lib/patient-data";
+import { explainPrediction } from "@/lib/xai-engine";
+import { XAIExplanationPanel } from "@/components/XAIExplanationPanel";
 
 interface VitalInput {
   label: string;
@@ -34,26 +36,9 @@ const VITAL_FIELDS: VitalInput[] = [
   { label: "Mean Arterial Pressure", key: "MAP", unit: "mmHg", icon: <Activity className="w-4 h-4" />, min: 40, max: 160, step: 1, normal: "70–105", placeholder: "90" },
 ];
 
-function computeRisk(values: Record<string, number>): number {
-  const hr = values.HR ?? 78;
-  const temp = values.Temp ?? 37;
-  const resp = values.Resp ?? 16;
-  const o2sat = values.O2Sat ?? 97;
-  const sbp = values.SBP ?? 120;
-
-  const hrRisk = Math.max(0, (hr - 90) / 50);
-  const tempRisk = Math.max(0, (temp - 37.5) / 2);
-  const respRisk = Math.max(0, (resp - 20) / 15);
-  const o2Risk = Math.max(0, (95 - o2sat) / 10);
-  const sbpRisk = Math.max(0, (100 - sbp) / 40);
-
-  let score = (hrRisk + tempRisk + respRisk + o2Risk + sbpRisk) / 2.5;
-  return Math.min(0.98, Math.max(0.02, score));
-}
-
 const Predict = () => {
   const [values, setValues] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<{ score: number; level: ReturnType<typeof getRiskLevel> } | null>(null);
+  const [result, setResult] = useState<ReturnType<typeof explainPrediction> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (key: string, val: string) => {
@@ -84,9 +69,8 @@ const Predict = () => {
     if (!validate()) return;
     const numericValues: Record<string, number> = {};
     for (const f of VITAL_FIELDS) numericValues[f.key] = parseFloat(values[f.key]);
-    const score = computeRisk(numericValues);
-    const level = getRiskLevel(score);
-    setResult({ score, level });
+    const explanation = explainPrediction(numericValues);
+    setResult(explanation);
   };
 
   const handleClear = () => {
@@ -111,17 +95,17 @@ const Predict = () => {
             </div>
             <div>
               <h1 className="text-sm font-semibold text-foreground tracking-tight">
-                Sepsis Risk Predictor
+                Sepsis Risk Predictor — Explainable AI
               </h1>
               <p className="text-[10px] text-muted-foreground">
-                Enter patient vitals to get an AI-powered sepsis risk assessment
+                Enter patient vitals to get an AI-powered sepsis risk assessment with clinical explanations
               </p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Info banner */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -130,13 +114,13 @@ const Predict = () => {
         >
           <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Input the patient's current vital signs below. The prediction model analyzes deviations from normal ranges across
-            multiple parameters to calculate a composite sepsis risk score. This uses the same algorithm trained on the{" "}
-            <span className="text-foreground font-medium">PhysioNet Sepsis Challenge</span> dataset.
+            This module uses <span className="text-foreground font-medium">Explainable AI (XAI)</span> to provide 
+            transparent clinical reasoning alongside risk predictions. Each assessment includes SHAP-based feature contributions, 
+            trend analysis, and plain-language explanations written for clinicians — not data scientists.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6">
           {/* Input form */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
             <Card className="bg-card border-border/50 p-5">
@@ -180,7 +164,7 @@ const Predict = () => {
               <div className="flex gap-3">
                 <Button onClick={handlePredict} className="gap-2 flex-1">
                   <Brain className="w-4 h-4" />
-                  Predict Sepsis Risk
+                  Predict & Explain
                 </Button>
                 <Button variant="outline" onClick={handleClear}>
                   Clear
@@ -189,8 +173,8 @@ const Predict = () => {
             </Card>
           </motion.div>
 
-          {/* Result panel */}
-          <div className="space-y-4">
+          {/* Result panel — now XAI-powered */}
+          <div>
             <AnimatePresence mode="wait">
               {result ? (
                 <motion.div
@@ -199,118 +183,59 @@ const Predict = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                  className="space-y-4"
                 >
-                  <Card className="bg-card border-border/50 p-5 space-y-4">
-                    <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                      <Brain className="w-3.5 h-3.5" />
-                      Prediction Result
-                    </h2>
-
-                    {/* Risk gauge */}
-                    <div className="flex flex-col items-center py-4">
-                      <div
-                        className="relative w-32 h-32 rounded-full flex items-center justify-center"
-                        style={{
-                          background: `conic-gradient(${result.level.color} ${result.score * 360}deg, hsl(var(--secondary)) ${result.score * 360}deg)`,
-                        }}
-                      >
-                        <div className="w-24 h-24 rounded-full bg-card flex flex-col items-center justify-center">
-                          <span className="text-2xl font-mono font-bold text-foreground">
-                            {(result.score * 100).toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="mt-3 flex items-center gap-2">
-                        {result.score >= 0.5 ? (
-                          <AlertTriangle className="w-4 h-4" style={{ color: result.level.color }} />
+                  {/* Risk Score Header */}
+                  <Card className="bg-card border-border/50 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                        <Brain className="w-3.5 h-3.5" />
+                        XAI Prediction
+                      </h2>
+                      <div className="flex items-center gap-1">
+                        {result.status === "CRITICAL" || result.status === "HIGH" ? (
+                          <AlertTriangle className="w-4 h-4" style={{ color: result.status === "CRITICAL" ? "hsl(var(--risk-critical))" : "hsl(var(--risk-high))" }} />
                         ) : (
-                          <CheckCircle2 className="w-4 h-4" style={{ color: result.level.color }} />
+                          <CheckCircle2 className="w-4 h-4" style={{ color: result.status === "MODERATE" ? "hsl(var(--risk-medium))" : "hsl(var(--risk-low))" }} />
                         )}
                         <span
-                          className="text-sm font-semibold tracking-wide"
-                          style={{ color: result.level.color }}
+                          className="text-sm font-bold tracking-wide"
+                          style={{
+                            color: result.status === "CRITICAL" ? "hsl(var(--risk-critical))"
+                              : result.status === "HIGH" ? "hsl(var(--risk-high))"
+                                : result.status === "MODERATE" ? "hsl(var(--risk-medium))"
+                                  : "hsl(var(--risk-low))"
+                          }}
                         >
-                          {result.level.label}
+                          {result.status}
                         </span>
                       </div>
                     </div>
 
-                    <Separator />
-
-                    {/* Risk breakdown */}
-                    <div className="space-y-2">
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                        Contributing Factors
-                      </span>
-                      {(() => {
-                        const v = Object.fromEntries(VITAL_FIELDS.map(f => [f.key, parseFloat(values[f.key] ?? "0")]));
-                        const factors = [
-                          { name: "Heart Rate", val: Math.max(0, (v.HR - 90) / 50), flag: v.HR > 100 },
-                          { name: "Temperature", val: Math.max(0, (v.Temp - 37.5) / 2), flag: v.Temp > 38 },
-                          { name: "Resp. Rate", val: Math.max(0, (v.Resp - 20) / 15), flag: v.Resp > 22 },
-                          { name: "SpO₂", val: Math.max(0, (95 - v.O2Sat) / 10), flag: v.O2Sat < 94 },
-                          { name: "Systolic BP", val: Math.max(0, (100 - v.SBP) / 40), flag: v.SBP < 100 },
-                        ].sort((a, b) => b.val - a.val);
-
-                        return factors.map((f) => (
-                          <div key={f.name} className="flex items-center gap-2">
-                            <span className="text-xs text-foreground w-24 shrink-0">{f.name}</span>
-                            <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${Math.min(100, f.val * 100)}%` }}
-                                className="h-full rounded-full"
-                                style={{ backgroundColor: f.val > 0.3 ? "hsl(var(--risk-high))" : f.val > 0.1 ? "hsl(var(--risk-medium))" : "hsl(var(--risk-low))" }}
-                              />
-                            </div>
-                            {f.flag && (
-                              <AlertTriangle className="w-3 h-3 text-destructive shrink-0" />
-                            )}
-                          </div>
-                        ));
-                      })()}
+                    {/* Circular gauge */}
+                    <div className="flex justify-center py-2">
+                      <div
+                        className="relative w-28 h-28 rounded-full flex items-center justify-center"
+                        style={{
+                          background: `conic-gradient(${
+                            result.status === "CRITICAL" ? "hsl(var(--risk-critical))"
+                              : result.status === "HIGH" ? "hsl(var(--risk-high))"
+                                : result.status === "MODERATE" ? "hsl(var(--risk-medium))"
+                                  : "hsl(var(--risk-low))"
+                          } ${result.risk_score * 3.6}deg, hsl(var(--secondary)) ${result.risk_score * 3.6}deg)`,
+                        }}
+                      >
+                        <div className="w-20 h-20 rounded-full bg-card flex flex-col items-center justify-center">
+                          <span className="text-xl font-mono font-bold text-foreground">
+                            {result.risk_score}%
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </Card>
 
-                  {/* Clinical recommendation */}
-                  <Card className="bg-card border-border/50 p-4 mt-4">
-                    <h3 className="text-[10px] text-muted-foreground uppercase tracking-widest mb-2">
-                      Recommended Actions
-                    </h3>
-                    <ul className="space-y-1.5 text-xs text-foreground/80">
-                      {result.score >= 0.7 && (
-                        <>
-                          <li className="flex gap-2"><span className="text-destructive">•</span> Activate sepsis protocol immediately</li>
-                          <li className="flex gap-2"><span className="text-destructive">•</span> Draw blood cultures & lactate STAT</li>
-                          <li className="flex gap-2"><span className="text-destructive">•</span> Start broad-spectrum antibiotics within 1 hour</li>
-                          <li className="flex gap-2"><span className="text-destructive">•</span> Administer 30 mL/kg crystalloid bolus</li>
-                        </>
-                      )}
-                      {result.score >= 0.5 && result.score < 0.7 && (
-                        <>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Increase monitoring frequency to q15min</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Order CBC, BMP, lactate, procalcitonin</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Consider empiric antibiotic coverage</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Notify attending physician</li>
-                        </>
-                      )}
-                      {result.score >= 0.3 && result.score < 0.5 && (
-                        <>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Continue routine monitoring q1h</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Trend vitals and reassess in 2 hours</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-medium))]">•</span> Consider additional lab work if worsening</li>
-                        </>
-                      )}
-                      {result.score < 0.3 && (
-                        <>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-low))]">•</span> Continue standard monitoring protocol</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-low))]">•</span> No immediate sepsis concern</li>
-                          <li className="flex gap-2"><span className="text-[hsl(var(--risk-low))]">•</span> Reassess if clinical status changes</li>
-                        </>
-                      )}
-                    </ul>
-                  </Card>
+                  {/* Full XAI Explanation */}
+                  <XAIExplanationPanel explanation={result} />
                 </motion.div>
               ) : (
                 <motion.div
@@ -318,13 +243,14 @@ const Predict = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  <Card className="bg-card border-border/50 p-5 flex flex-col items-center justify-center min-h-[300px] text-center">
+                  <Card className="bg-card border-border/50 p-5 flex flex-col items-center justify-center min-h-[400px] text-center">
                     <Brain className="w-10 h-10 text-muted-foreground/30 mb-3" />
                     <p className="text-sm text-muted-foreground">
-                      Enter patient vitals and click <span className="text-primary font-medium">Predict</span> to see the risk assessment
+                      Enter patient vitals and click <span className="text-primary font-medium">Predict & Explain</span>
                     </p>
-                    <p className="text-[10px] text-muted-foreground/60 mt-2 max-w-[240px]">
-                      The model evaluates HR, temperature, SpO₂, blood pressure, and respiratory rate to compute a composite sepsis risk score
+                    <p className="text-[10px] text-muted-foreground/60 mt-2 max-w-[260px]">
+                      The XAI module will show you exactly <em>why</em> the patient is at risk, 
+                      with SHAP-based feature contributions and clinical narratives
                     </p>
                   </Card>
                 </motion.div>
