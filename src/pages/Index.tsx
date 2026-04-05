@@ -188,8 +188,12 @@ const Dashboard = () => {
             <RiskHistoryChart readings={selectedPatient.readings} currentHour={currentHour} />
           </div>
 
-          {/* Bottom row */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Bottom row: XAI + Model Performance */}
+          <div className="grid grid-cols-3 gap-4">
+            {/* XAI Explanation (live) */}
+            <XAICompactCard explanation={xaiExplanation} />
+
+            {/* SHAP Feature Importance */}
             <FeatureImportance />
 
             {/* Model info card */}
