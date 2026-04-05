@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Play, Pause, RotateCcw, Zap, Monitor, Brain, BellRing, BellOff, FileText, Stethoscope } from "lucide-react";
@@ -12,6 +12,8 @@ import { AlertBanner } from "@/components/AlertBanner";
 import { VitalsChart, RiskHistoryChart } from "@/components/VitalsChart";
 import { PatientSidebar } from "@/components/PatientSidebar";
 import { FeatureImportance } from "@/components/FeatureImportance";
+import { XAICompactCard } from "@/components/XAIExplanationPanel";
+import { explainReading } from "@/lib/xai-engine";
 import { PatientDetailModal } from "@/components/PatientDetailModal";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
