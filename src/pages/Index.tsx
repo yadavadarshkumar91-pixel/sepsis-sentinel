@@ -36,6 +36,11 @@ const Dashboard = () => {
   const currentHour = currentHours[selectedPatientId] ?? 0;
   const currentReading = selectedPatient.readings[currentHour];
 
+  const xaiExplanation = useMemo(
+    () => explainReading(currentReading, selectedPatient.readings, currentHour),
+    [currentReading, selectedPatient.readings, currentHour]
+  );
+
   useAlertNotifications(selectedPatient.name, currentReading.riskScore, alertsEnabled);
 
   const advanceHour = useCallback(() => {
