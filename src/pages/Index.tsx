@@ -266,62 +266,6 @@ const Dashboard = () => {
 
           {/* Prediction History Log */}
           <PredictionHistory history={predictionHistory[selectedPatientId] ?? []} />
-            {/* XAI Explanation (live) */}
-            <XAICompactCard explanation={xaiExplanation} />
-
-            {/* SHAP Feature Importance */}
-            <FeatureImportance />
-
-            {/* Model info card */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="glass-card p-4"
-            >
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
-                <Brain className="w-3.5 h-3.5" />
-                Model Performance
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Accuracy", rf: "99.65%", xgb: "99.60%" },
-                  { label: "Precision", rf: "94.47%", xgb: "93.10%" },
-                  { label: "Recall", rf: "96.91%", xgb: "97.42%" },
-                  { label: "F1 Score", rf: "95.67%", xgb: "95.21%" },
-                  { label: "AUC-ROC", rf: "99.97%", xgb: "99.98%" },
-                ].map((m) => (
-                  <div key={m.label} className="bg-secondary/40 rounded-lg p-2.5">
-                    <span className="text-[10px] text-muted-foreground block">{m.label}</span>
-                    <div className="flex items-baseline gap-2 mt-0.5">
-                      <span className="text-sm font-mono font-semibold text-primary">{m.rf}</span>
-                      <span className="text-[9px] text-muted-foreground">RF</span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-mono text-foreground/70">{m.xgb}</span>
-                      <span className="text-[9px] text-muted-foreground">XGB</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Hour slider */}
-              <div className="mt-4">
-                <label className="text-[10px] text-muted-foreground block mb-1">
-                  Timeline — Hour {currentHour + 1}
-                </label>
-                <Slider
-                  value={[currentHour]}
-                  onValueChange={([v]) => {
-                    setIsPlaying(false);
-                    setCurrentHours((prev) => ({ ...prev, [selectedPatientId]: v }));
-                  }}
-                  max={selectedPatient.readings.length - 1}
-                  min={0}
-                  step={1}
-                />
-              </div>
-            </motion.div>
-          </div>
         </main>
       </div>
       <PatientDetailModal
