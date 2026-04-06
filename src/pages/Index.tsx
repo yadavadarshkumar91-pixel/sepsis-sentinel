@@ -15,6 +15,8 @@ import { FeatureImportance } from "@/components/FeatureImportance";
 import { XAICompactCard } from "@/components/XAIExplanationPanel";
 import { explainReading } from "@/lib/xai-engine";
 import { PatientDetailModal } from "@/components/PatientDetailModal";
+import { PredictionHistory } from "@/components/PredictionHistory";
+import type { PredictionLogEntry } from "@/components/PredictionHistory";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
