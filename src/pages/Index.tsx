@@ -15,6 +15,8 @@ import { FeatureImportance } from "@/components/FeatureImportance";
 import { XAICompactCard } from "@/components/XAIExplanationPanel";
 import { explainReading } from "@/lib/xai-engine";
 import { PatientDetailModal } from "@/components/PatientDetailModal";
+import { PredictionHistory } from "@/components/PredictionHistory";
+import type { PredictionLogEntry } from "@/components/PredictionHistory";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
@@ -30,6 +32,7 @@ const Dashboard = () => {
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [patientNotes, setPatientNotes] = useState<Record<number, Array<{ text: string; author: string; timestamp: string }>>>({});
+  const [predictionHistory, setPredictionHistory] = useState<Record<number, PredictionLogEntry[]>>({});
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const selectedPatient = patients.find((p) => p.id === selectedPatientId) ?? patients[0];
@@ -40,6 +43,20 @@ const Dashboard = () => {
     () => explainReading(currentReading, selectedPatient.readings, currentHour),
     [currentReading, selectedPatient.readings, currentHour]
   );
+
+  // Log each XAI assessment into prediction history
+  useEffect(() => {
+    setPredictionHistory(prev => {
+      const existing = prev[selectedPatientId] ?? [];
+      if (existing.some(e => e.hour === currentHour)) return prev;
+      const entry: PredictionLogEntry = {
+        hour: currentHour,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+        explanation: xaiExplanation,
+      };
+      return { ...prev, [selectedPatientId]: [...existing, entry] };
+    });
+  }, [selectedPatientId, currentHour, xaiExplanation]);
 
   useAlertNotifications(selectedPatient.name, currentReading.riskScore, alertsEnabled);
 
@@ -246,6 +263,9 @@ const Dashboard = () => {
               </div>
             </motion.div>
           </div>
+
+          {/* Prediction History Log */}
+          <PredictionHistory history={predictionHistory[selectedPatientId] ?? []} />
         </main>
       </div>
       <PatientDetailModal
